@@ -1,13 +1,50 @@
+import { useCallback, useMemo } from "react";
 import Todo from "./Todo";
 import AddTodo from "./AddTodo";
 
 export default function TodoApp({ todo, setTodo }) {
+  console.log("Run TodoApp");
+
+  //  const obj = useMemo(() => {
+  //   return {A:1, B:2, todo:todo};
+  //  }, [todo]);
+
+  const flexStyles = useMemo(() => {
+    return {
+      display: "flex",
+      padding: "0.5 rem",
+      marginTop: "1rem",
+    };
+  }, []);
+
   const styles = {
     backgroundColor: "#FFF",
     margin: "0 auto",
     marginTop: "1rem",
     width: "50rem",
   };
+
+  // [] <== component가 처음 실행될 때에만 동작(의존 배열)
+  // const fn = useCallback(() => {}, []);
+
+  // [todo]가 변경되었다면 함수를 재생성하는 의존배열.  todo가 재생성되었을때 동작
+  // const fn = useCallback(() => {}, [todo]);
+
+  const onTodoHandler = useCallback(
+    (task, dueDate) => {
+      // 실제로 메모리가 바뀌었을경우에만 아래함수 재실행됨
+      setTodo((prevTodos) => [
+        ...prevTodos,
+        {
+          id: prevTodos.length,
+          isDone: false,
+          task,
+          dueDate,
+        },
+      ]);
+    },
+    [setTodo]
+  ); //settodo를 이용해서 이렇게 생긴 함수를 만들고 -> 이걸 메모리에 로드시킨다 -> onTodoHandler에 넣어준다
 
   //여기서 event를 쓰는이유 : todoComponent의 개수만큼 ref를 만들고 전달할 방법이 없어서
   const onDoneHandler = (event) => {
@@ -40,10 +77,15 @@ export default function TodoApp({ todo, setTodo }) {
       <ul>
         {/* map : 배열만 됨. 배열안의 요소(객체리터럴의 값을 todo 형태로)의 형태를 바꾸는것 */}
         {todo.map((todo) => (
-          <Todo key={todo.id} todo={todo} onDone={onDoneHandler} />
+          <Todo
+            key={todo.id}
+            todo={todo}
+            onDone={onDoneHandler}
+            style={flexStyles}
+          />
         ))}
       </ul>
-      <AddTodo setTodo={setTodo} />
+      <AddTodo onAdd={onTodoHandler} style={flexStyles} />
     </div>
   );
 }

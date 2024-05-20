@@ -4,12 +4,14 @@
  *
  *
  */
-export default function Todo({ todo, onDone }) {
+export default function Todo({ todo, onDone, style }) {
+  console.log("Run Todo");
   const { id, task, dueDate, isDone } = todo; //todo객체에서 id, task, dueDate, isDone 가지고옴
   //리액트에서의 스타일은 아래 styles처럼 객체리터럴로 만들어야됨
   const styles = {
+    ...style, //style 을 받아오는 방법 -- display, padding, marginTop
     borderBottom: "1px solid #CCC",
-    padding: "1rem",
+    padding: "1rem", //padding은 ...style로 인해 overwrite됨
     display: "flex",
     color: isDone ? "#CCC" : "#333",
     textDecoration: isDone ? "line-through" : "none",

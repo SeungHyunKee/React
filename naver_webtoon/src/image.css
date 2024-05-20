@@ -1,0 +1,39 @@
+.container {
+  display: flex;
+  gap: 20px;
+}
+
+.rectangle-container {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.rectangle {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  /* border: 1px solid #ddd; */
+  padding: 0px;
+  border-radius: 2px;
+  background-color: white;
+  white-space: pre-wrap; /* 줄 바꿈을 유지하기 위해 추가 */
+  font-family: monospace; /* JSON 포맷을 보기 좋게 하기 위해 */
+}
+
+.image {
+  width: 230px; /* 원하는 크기로 조정하세요 */
+  height: 300px;
+  border-radius: 2px;
+}
+
+.title {
+  margin-top: 10px;
+  font-size: 16px;
+  width: 100%; /* 가로 방향 중앙 정렬을 위해 추가 */
+  text-align: left;
+  font-weight: 600;
+  font-family: Pretendard, Helvetica, -apple-system, BlinkMacSystemFont,
+    "Apple SD Gothic Neo", "맑은 고딕", "Malgun Gothic", "돋움", Dotum,
+    sans-serif;
+}
