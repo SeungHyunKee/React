@@ -1,39 +1,39 @@
 import { useState, useEffect } from "react";
 import Header from "./components/Header.js";
+import BoardApp from "./components/BoardApp.js";
 
 export default function App() {
   const [token, setToken] = useState();
+  const [loginInfo, setLoginInfo] = useState();
 
-  const [boards, setBoards] = useState([]);
-
-  //게시글 불러오기
   useEffect(() => {
-    const loadBoards = async () => {
+    const loadMember = async () => {
       if (!token) {
+        setLoginInfo(undefined);
         return;
       }
 
-      const response = await fetch("http://localhost:8080/api/v1/boards", {
-        method: "GET", //GET 은 body가 없음
-        headers: {
-          //authorization에서의 키를 넣어주기 위함
-          Authorization: token,
-        },
+      const response = await fetch(`http://localhost:8080/api/v1/member`, {
+        method: "GET",
+        headers: { Authorization: token },
       });
-
       const json = await response.json();
-      console.log(json);
-      setBoards(json.body);
+      setLoginInfo(json.body);
     };
-    loadBoards();
-  }, [token]); //바뀔 염려가 있는 값들 or props로 가지고오는 값들 넣어줘야됨
+    loadMember();
+  }, [token]);
+
+  // const [boards, setBoards] = useState([]);
+  // const [selectedBoardId, setSelectedBoardId] = useState();
+  // const isSelect = selectedBoardId !== undefined; //게시글을 선택한 상태인지 아닌지를 알고싶어서
 
   return (
     <div className="main-container">
       {/* token의 값이 있다 = 로그인을 했다, token의 값이 undefined, null 이 아님 */}
-      <Header token={token} setToken={setToken} />
-      <div>게시글 목록</div>
-      <div>게시글 등록</div>
+      <Header token={token} setToken={setToken} loginInfo={loginInfo} />
+      <main>
+        <BoardApp token={token} loginInfo={loginInfo} />
+      </main>
     </div>
   );
 }

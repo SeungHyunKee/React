@@ -1,6 +1,6 @@
 import { useRef, useEffect } from "react";
 
-export default function Header({ token, setToken }) {
+export default function Header({ token, setToken, loginInfo }) {
   //state의 set은 상태가 바뀌지 않음
   const emailRef = useRef();
   const passwordRef = useRef();
@@ -38,7 +38,12 @@ export default function Header({ token, setToken }) {
     });
 
     const json = await response.json();
-    setToken(json.token);
+    if (json.message) {
+      alert(json.message);
+      return;
+    } else if (json.token) {
+      setToken(json.token);
+    }
 
     // token의 값을 브라우저의 로컬 스토리지에 작성한다
     localStorage.setItem("token", json.token); //키 : 토큰, value : 발급받은거
@@ -46,9 +51,23 @@ export default function Header({ token, setToken }) {
     sessionStorage.setItem("token", json.token); //세션 스토리지에 저장한다.
   };
 
+  //App.js가 가지고있는 토큰의 값이 바뀌고, App 컴포넌트 재실행
+  // -> header컴포넌트 재실행 -> 토큰을 localstorage에서 가지고와서 다시 세팅함 => 지워줘야됨
+  const onLogoutClickHandler = () => {
+    localStorage.removeItem("token");
+    setToken(undefined);
+  };
+
   return (
     <header>
-      {token && <div>로그인이 완료되었습니다.</div>}
+      {token && loginInfo && (
+        <div>
+          <span>
+            {loginInfo.name} ({loginInfo.email})
+          </span>
+          <span onClick={onLogoutClickHandler}>로그아웃</span>
+        </div>
+      )}
       {!token && (
         <div>
           <label htmlFor="email">EMAIL</label>
