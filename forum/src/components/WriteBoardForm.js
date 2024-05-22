@@ -1,4 +1,5 @@
 import { useRef } from "react";
+import { writeBoardForm } from "../http/http";
 
 export default function WriteBoardForm({
   setIsWriteMode,
@@ -19,19 +20,12 @@ export default function WriteBoardForm({
     const file = fileRef.current.files[0]; //선택된 파일들의 배열을 가져옴 (한개의 파일만 등록할수잇으므로 [0])
 
     //파일 업로드를 위해 formData 생성 (아래처럼 보내주면 multipartFormData로 간다)
-    const formData = new FormData(); //JavaScript built-in 객체
-    formData.append("subject", subject);
-    formData.append("content", content);
-    formData.append("file", file);
+    // const formData = new FormData(); //JavaScript built-in 객체
+    // formData.append("subject", subject);
+    // formData.append("content", content);
+    // formData.append("file", file);
 
-    const response = await fetch("http://localhost:8080/api/v1/boards", {
-      method: "POST",
-      headers: {
-        Authorization: token,
-      },
-      body: formData,
-    });
-    const json = await response.json();
+    const json = await writeBoardForm(subject, content, file, token);
     console.log(json);
 
     if (json.errors) {

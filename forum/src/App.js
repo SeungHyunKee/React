@@ -1,27 +1,59 @@
-import { useState, useEffect } from "react";
+import { useCallback, useMemo, useState } from "react";
 import Header from "./components/Header.js";
 import BoardApp from "./components/BoardApp.js";
+import { loadMyData } from "./http/http.js";
+import { useFetch } from "./hooks/useFetch.js";
 
 export default function App() {
   const [token, setToken] = useState();
-  const [loginInfo, setLoginInfo] = useState();
 
-  useEffect(() => {
-    const loadMember = async () => {
-      if (!token) {
-        setLoginInfo(undefined);
-        return;
-      }
-
-      const response = await fetch(`http://localhost:8080/api/v1/member`, {
-        method: "GET",
-        headers: { Authorization: token },
-      });
-      const json = await response.json();
-      setLoginInfo(json.body);
-    };
-    loadMember();
+  // loadmydata(함수)
+  // {token} (객체)
+  // 캐싱 해줘야됨(안해주면 무한반복됨)
+  const fetchLoadMyData = useCallback(() => {
+    //이함수가 동작될때, 토큰이 있을경우에만 loadmydata실행해서 결과 돌려줌
+    //토큰의 유무에 따라 전달되는 함수가 달라짐
+    if (token) {
+      return loadMyData;
+    } else {
+      //토큰이 없다면 undefined 반환시키는 함수를 반환시킴
+      return () => {
+        return undefined; //이후 undefined가 data에 들어감
+      };
+    }
   }, [token]);
+
+  const fetchToken = useMemo(() => {
+    return { token };
+  }, [token]);
+
+  const { data } = useFetch(
+    undefined, //data 로 받아올 상태state의 초기값={}
+    fetchLoadMyData(),
+    fetchToken
+  );
+  // data가 undefined가 아니라면, myInfo에 할당시키고, undefined라면 {}를 (body) 반환시켜라
+  // data가 undefinedf라면, data에서 body를 꺼내어서 loginInfo이름으로 할당함
+  const { body: loginInfo } = data || {};
+  // 회원정보가 있는 body 가 필요함. data는 undefined / undefined아닐수도잇음
+
+  //세번째값은 리터럴로 주기로 했으니 {token} 이런식으로 준다
+
+  // const [loginInfo, setLoginInfo] = useState();
+  // const { data, isLoading } = useTimeout(); // 객체리터럴이므로 분해가 가능함
+
+  // useEffect(() => {
+  //   const loadMember = async () => {
+  //     if (!token) {
+  //       setLoginInfo(undefined);
+  //       return;
+  //     }
+  //     const json = await loadMyData(token);
+  //     // loadMyData가 async 함수라서 새로운타임라인 말고, 이 안에서 쓰이도록하는 용도
+  //     setLoginInfo(json.body);
+  //   };
+  //   loadMember();
+  // }, [token]);
 
   // const [boards, setBoards] = useState([]);
   // const [selectedBoardId, setSelectedBoardId] = useState();
@@ -29,6 +61,7 @@ export default function App() {
 
   return (
     <div className="main-container">
+      {/* {isLoading ? <div>데이터를 불러오는 중입니다.</div> : <div>{data}</div>} */}
       {/* token의 값이 있다 = 로그인을 했다, token의 값이 undefined, null 이 아님 */}
       <Header token={token} setToken={setToken} loginInfo={loginInfo} />
       <main>

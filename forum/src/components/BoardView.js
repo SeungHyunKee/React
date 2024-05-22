@@ -1,5 +1,7 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import ModifyBoardForm from "./ModifyBoardForm";
+import { viewBoard, viewOneBoard } from "../http/http";
+import { useFetch } from "../hooks/useFetch";
 
 export default function BoardView({
   selectedBoardId,
@@ -8,8 +10,8 @@ export default function BoardView({
   setNeedReload,
   loginInfo,
   setIsWriteMode,
+  needReload,
 }) {
-  const [boardItem, setboardItem] = useState();
   const [isModifyMode, setIsModifyMode] = useState(false);
 
   const onModifyClickHandler = () => {
@@ -17,17 +19,7 @@ export default function BoardView({
   };
 
   const onDeleteClickHandler = async () => {
-    const response = await fetch(
-      `http://localhost:8080/api/v1/boards/${boardItem.id}`,
-      {
-        method: "DELETE",
-        headers: {
-          Authorization: token,
-        },
-      }
-    );
-
-    const json = await response.json();
+    const json = await viewBoard(boardItem, token);
     if (json.body) {
       //삭제성공
       //목록컴포넌트 노출
@@ -46,26 +38,35 @@ export default function BoardView({
     setSelectedBoardId(undefined);
   };
 
-  useEffect(() => {
-    const loadOneBoard = async () => {
-      const response = await fetch(
-        `http://localhost:8080/api/v1/boards/${selectedBoardId}`,
-        {
-          method: "GET",
-          headers: { Authorization: token },
-        }
-      );
-      const json = await response.json();
-      setboardItem(json.body);
-    };
-    loadOneBoard();
-  }, [selectedBoardId, token]);
+  // const [boardItem, setboardItem] = useState();
+
+  const fetchLoadOneBoard = useCallback(viewOneBoard, []);
+
+  const fetchParam = useMemo(() => {
+    return { selectedBoardId, token, needReload };
+  }, [selectedBoardId, token, needReload]);
+
+  const { data, isLoading } = useFetch(
+    undefined,
+    fetchLoadOneBoard,
+    fetchParam
+  );
+
+  const { body: boardItem } = data || {};
+
+  // useEffect(() => {
+  //   const loadOneBoard = async () => {
+  //     const json = await viewOneBoard(selectedBoardId, token);
+  //     setboardItem(json.body);
+  //   };
+  //   loadOneBoard();
+  // }, [selectedBoardId, token, needReload]);
 
   return (
     <div>
       {!isModifyMode && (
         <div>
-          {!boardItem && <div>데이터를 불러오는 중입니다.</div>}
+          {isLoading && <div>데이터를 불러오는 중입니다.</div>}
           {boardItem && (
             <div>
               <h3>제목 : {boardItem.subject}</h3>

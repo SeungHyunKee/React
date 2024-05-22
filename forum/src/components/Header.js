@@ -1,4 +1,5 @@
 import { useRef, useEffect } from "react";
+import { login } from "../http/http";
 
 export default function Header({ token, setToken, loginInfo }) {
   //state의 set은 상태가 바뀌지 않음
@@ -30,14 +31,8 @@ export default function Header({ token, setToken, loginInfo }) {
       return;
     }
 
-    // fetch는 비동기이기때문에 await 필수로 써줌!! (상위함수가 반드시 async 여야함 -> onclickhandler 함수앞에 async 붙여주기)
-    const response = await fetch("http://localhost:8080/auth/token", {
-      method: "POST",
-      body: JSON.stringify({ email, password }),
-      headers: { "Content-Type": "application/json" },
-    });
+    const json = await login(email, password);
 
-    const json = await response.json();
     if (json.message) {
       alert(json.message);
       return;

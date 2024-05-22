@@ -1,4 +1,5 @@
 import { useRef } from "react";
+import { modifyBoardForm } from "../http/http";
 export default function ModifyBoardForm({
   setIsWriteMode,
   token,
@@ -25,17 +26,7 @@ export default function ModifyBoardForm({
     formData.append("content", content);
     formData.append("file", file);
 
-    const response = await fetch(
-      `http://localhost:8080/api/v1/boards/${boardItem.id}`,
-      {
-        method: "PUT",
-        headers: {
-          Authorization: token,
-        },
-        body: formData,
-      }
-    );
-    const json = await response.json();
+    const json = await modifyBoardForm(boardItem, token, formData);
     console.log(json);
 
     if (json.errors) {
@@ -75,6 +66,7 @@ export default function ModifyBoardForm({
           ref={contentRef}
           defaultValue={boardItem.content}
         ></textarea>
+        ``
       </div>
       <div className="button-area right-align">
         <button onClick={onCancelClickHandler}>취소</button>
