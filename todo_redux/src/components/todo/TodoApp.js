@@ -1,8 +1,8 @@
-import { useCallback, useMemo } from "react";
+import { useMemo } from "react";
 import Todo from "./Todo";
 import AddTodo from "./AddTodo";
 import { useDispatch, useSelector } from "react-redux";
-import { loadTodo } from "../stores/toolkit/store";
+import { loadTodo } from "../../stores/toolkit/store";
 
 export default function TodoApp() {
   console.log("Run TodoApp");

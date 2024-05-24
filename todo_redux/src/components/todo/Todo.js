@@ -1,6 +1,7 @@
 import { useRef } from "react";
 import { useDispatch } from "react-redux";
-import { doneTodo, todoActions } from "../stores/toolkit/store";
+import { doneTodo } from "../../stores/toolkit/store";
+import { Link } from "react-router-dom";
 
 /*Todo Item 을 관리하는 Component
  * props : todo (객체) = {id: "", task: "", dueDate: "", isDone: false} *
@@ -54,7 +55,11 @@ export default function Todo({ todo, style }) {
         {/* // 리액트에서 value를 주면 값을 '고정'하는 의미이기때문에,
         defaultvalue를 줌(초기값만 설정하고 바뀔수 있도록) */}
       </div>
-      <div style={{ flexGrow: 1 }}>{task}</div>
+      <div style={{ flexGrow: 1 }}>
+        <Link to={`/todo/${id}`} style={{ color: isDone ? "#CCC" : "#333" }}>
+          {task}
+        </Link>
+      </div>
       <div>{dueDate}</div>
     </li>
   );

@@ -23,7 +23,7 @@ const todoSliceStore = createSlice({
 
     add(state, action) {
       //state : 변경가능한 state, action: state를 변경시켜주는 값들이 들어있음
-      console.log("todo > add: ", action);
+      // console.log("todo > add: ", action);
       const payload = action.payload;
       state.push({
         id: payload.id,
@@ -33,7 +33,7 @@ const todoSliceStore = createSlice({
       });
     },
     done(state, action) {
-      console.log("todo > done: ", action);
+      // console.log("todo > done: ", action);
       const payload = action.payload;
       // payload: { id: 2, isDone: true } //id가 2번인 isDone의 값을 true로 바꿔라
       // -> 배열 내 아이템들의 인덱스를 알아야됨
@@ -53,6 +53,41 @@ const todoSliceStore = createSlice({
       const index = state.findIndex((item) => item.id === id);
       state[index].isDone = isDone;
     },
+
+    // **subtodo 추가할때 호출 (toolkit을 위한 reducer)**
+    addSubTodo(state, action) {
+      //todo state의 구조
+      /**
+       * todo : [
+       *   {id, task, dueDate, isDone, sub:[ -> subtodo가 있을경우 이렇게 구조 바뀌도록 함
+       *      {id, task, dueDate, isDone},
+       *      {id, task, dueDate, isDone},
+       *   ]},
+       *   {id, task, dueDate, isDone}, -> subtodo 가 없을경우
+       *   {id, task, dueDate, isDone},
+       * ]
+       */
+      //action을 분리해서 literal 로 가져옴
+      const { parentTodoId, id, task, dueDate } = action.payload;
+      // 1.parentTodoId와 todo의 id가 같은 객체 리터럴의 인덱스를 찾는다
+      const index = state.findIndex((todo) => todo.id === parentTodoId);
+      // 2.parentTodo의 인덱스에 ssub 항목이 존재하는지 확인한다
+      if (!state[index].sub) {
+        // 2-1. sub항목이 존재하지 않는다면, sub배열을 생성
+        state[index].sub = {}; //firebase가 배열을 관리못하기때문에 객체리터럴{}로 받음
+      }
+      // 2-2. sub 항목이 존재한다면, sub항목에 새로운 todo를 추가한다
+      state[index].sub[id] = { id, isDone: false, task, dueDate };
+    },
+    doneSubTodo(state, action) {
+      const { parentTodoId, id, isDone } = action.payload;
+      //      부모todoId,  내todoId
+      const index = state.findIndex((todo) => todo.id === parentTodoId);
+      // sub가 배열이 아닌 객체리터럴이기때문에, 주석처리된 아래와같이 못씀
+      // const subTodoIndex = state[index].sub.findIndex((todo) => todo.id === id);
+      // state[index].sub[subTodoIndex].isDone = isDone;
+      state[index].sub[id].isDone = isDone;
+    },
   },
 });
 
@@ -69,15 +104,15 @@ export const loadTodo = () => {
       method: "GET",
     });
     const json = await response.json();
-    console.log(json);
+    // console.log(json);
 
     const todoList = [];
     for (let key in json) {
-      console.log("json key", key);
-      console.log("json value", json[key]);
+      // console.log("json key", key);
+      // console.log("json value", json[key]);
       todoList.push(json[key]);
     }
-    console.log(todoList);
+    // console.log(todoList);
 
     // todoSliceStore에 저장함
     dispatch(todoActions.load(todoList));
@@ -101,7 +136,7 @@ export const addTodo = (newTodoItem) => {
     });
 
     const json = await response.json();
-    console.log();
+    // console.log();
   };
 };
 // todoSliceStore에 저장하고, 실제db인 firebase에도 저장함
@@ -121,7 +156,40 @@ export const doneTodo = (doneTodoItem) => {
     });
 
     const json = await response.json();
-    console.log();
+    // console.log();
+  };
+};
+
+// *********thunk만들어주기**********
+export const addSubTodo = (addSubTodoItem) => {
+  return async (dispatch) => {
+    dispatch(todoActions.addSubTodo(addSubTodoItem));
+
+    //firebase에 저장
+    const url = "https://react-todo-2181c-default-rtdb.firebaseio.com";
+    await fetch(
+      `${url}/todo/${addSubTodoItem.parentTodoId}/sub/${addSubTodoItem.id}.json`,
+      {
+        method: "PUT",
+        body: JSON.stringify(addSubTodoItem),
+      }
+    );
+  };
+};
+
+export const doneSubTodo = (doneSubTodoItem) => {
+  return async (dispatch) => {
+    dispatch(todoActions.doneSubTodo(doneSubTodoItem));
+    // firebase에 저장
+    const url = "https://react-todo-2181c-default-rtdb.firebaseio.com";
+    // async내부에서 fetch결과 받아와야되므로 await 써줘야됨
+    await fetch(
+      `${url}/todo/${doneSubTodoItem.parentTodoId}/sub/${doneSubTodoItem.id}.json`,
+      {
+        method: "PUT",
+        body: JSON.stringify(doneSubTodoItem),
+      }
+    );
   };
 };
 
@@ -137,6 +205,7 @@ export const todoActions = todoSliceStore.actions;
 // todoActions.add(payload{id:"", isDone});
 
 // 4. Provider Component 생성
+// todo state인 todoSliceStore 를 제공하기 위함
 export default function ToolkitProvider({ children }) {
   return <Provider store={toolkitStore}>{children}</Provider>;
 }

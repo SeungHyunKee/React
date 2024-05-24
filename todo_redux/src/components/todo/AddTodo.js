@@ -1,6 +1,6 @@
 import { useRef, memo } from "react";
 import { useDispatch } from "react-redux";
-import { addTodo, todoActions } from "../stores/toolkit/store";
+import { addSubTodo, addTodo } from "../../stores/toolkit/store";
 
 /*
 * TODO 아이템을 등록하는 컴포넌트
@@ -11,7 +11,7 @@ import { addTodo, todoActions } from "../stores/toolkit/store";
 *     (메모리주소가 바뀌었다면 바뀐것. 메모리안에있는 데이터가 바뀌는것은 바뀐게 아님)
 *     (전달되는 함수 props (onAdd) 의 메모리가 바뀌어 전달될 경우 재실행됨)
 */
-export default memo(function AddTodo({ style }) {
+export default memo(function AddTodo({ style, sub, parentTodoId }) {
   //setTodo라는 함수(props)가 바뀌었을 경우에만 재실행!
   console.log("Run AddTodo");
   //공통스타일
@@ -34,15 +34,23 @@ export default memo(function AddTodo({ style }) {
     // onAdd(taskRef.current.value, dueDateRef.current.value);
 
     // thunk dispatch 코드
-    todoDispatch(
-      //addTodo의 리턴에 있는 dispatch 함수가 전달된다 (액션을 만드는 생성자, thunk)
-      addTodo({
-        id: parseInt(Math.random() * 100_000_000),
-        isDone: false,
-        task: taskRef.current.value,
-        dueDate: dueDateRef.current.value,
-      })
-    );
+
+    const payload = {
+      id: parseInt(Math.random() * 100_000_000),
+      isDone: false,
+      task: taskRef.current.value,
+      dueDate: dueDateRef.current.value,
+    };
+
+    if (sub) {
+      // subTodo 등록
+      payload.parentTodoId = parentTodoId;
+    }
+
+    const thunk = sub ? addSubTodo(payload) : addTodo(payload);
+
+    todoDispatch(thunk);
+    //addTodo의 리턴에 있는 dispatch 함수가 전달된다 (액션을 만드는 생성자, thunk)
 
     // toolkit dispatch 코드
     // todoDisPatch(
